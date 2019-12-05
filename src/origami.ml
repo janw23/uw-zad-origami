@@ -1,3 +1,6 @@
+(* TODO: Check possible need of epsilon *)
+
+(* Punkt na płaszczyźnie *)
 type point = float * float
 type kartka = point -> int
 
@@ -36,12 +39,41 @@ let side (v : point) (l_orig, l_end) =
 		else if cross > 0. then -1
 		else 0
 
+(* Zwraca funkcję sprawdzającą, czy punkt [p] jest wewnątrz prostokąta [ra, rb] *)
+let inside_rect (ra : point) (rb : point) =
+	function (p : point) -> begin
+		(first p) >= (first ra) && (first p) <= (first rb) &&
+		(second p) >= (second ra) && (second p) <= (second rb)
+	end
+
+(* Zwraca funkcję sprawdzającą, czy punkt [p] jest wewnątrz okręgu [s, r] *)
+let inside_circle (s : point) (r : float) =
+	let sqrmag (k : point) = dot k k in
+	function (p : point) -> (sqrmag (sub_points p s) <= r *. r)
+
+(* Zmienna pomocnicza do debugowania     *)
+(* Autor: Piotr Prabucki & Jan Wawszczak *)
+let make_shit = 69;;
+
+(* Krotka symbolizująca brak jakiegokolwiek zgięcia kartki *)
+let zero_fold = ((0, 0), (0, 0))
+
+(* Tworzy kartkę, która do sprawdzania przynależności punktu do siebie samej 			*)
+(* używa funkcji [inside_shape] oraz zakłada, że wykonane zostały złożenia z listy [folds] *)
+let make_sheet (inside_shape : point -> bool) (fold : (point * point) * (fold * fold)) : (kartka -> int) =
+	function (p : point) -> begin
+		(* Jeśli nie wykonane zostało żadne zgięcie *)
+		if fold = zero_fold then (if inside_shape p then 1 else 0)
+		else begin
+			
+		end
+	end
 
 let prostokat (a : point) (b : point) =
-	function k -> 0
+	make_sheet (inside_rect a b) zero_fold
 
 let kolko (p : point) (r : float) =
-	function k -> 0
+	make_sheet (inside_circle p r) zero_fold
 
 let zloz (a : point) (b : point) (k : kartka) = k
 
