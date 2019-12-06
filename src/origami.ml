@@ -1,4 +1,6 @@
 (* TODO: Check possible need of epsilon *)
+let eps = 0.000000001
+let fabs (x : float) = if x < 0. then -. x else x
 
 (* Punkt na płaszczyźnie *)
 type point = float * float
@@ -35,54 +37,25 @@ let side (v : point) (l_orig, l_end) =
 	and l = sub_points l_end l_orig in
 	let cross = (first p) *. (second l) -. (second p) *. (first l)
 	in
-		if cross < 0. then 1
-		else if cross > 0. then -1
-		else 0
-
-(* Tworzy nową kartkę w kształcie prostokąta [ra, rb] *)
-let sheet_rect (ra : point) (rb : point) : kartka =
-	function (p : point) ->
-		if (first p) >= (first ra) && (first p) <= (first rb) &&
-		   (second p) >= (second ra) && (second p) <= (second rb)
-		   then 1 else 0
-
-(* Tworzy kartkę w kształcie koła o środku [s] i promieniu [r] *)
-let sheet_circle (s : point) (r : float) =
-	let sqrmag (k : point) = dot k k in
-	function (p : point) -> if (sqrmag (sub_points p s) <= r *. r) then 1 else 0
-
-(* Krotka symbolizująca brak jakiegokolwiek zgięcia kartki *)
-let zero_fold = ((0, 0), (0, 0))
-
-(* Tworzy kartkę, która do sprawdzania przynależności punktu 							 *)
-(* używa funkcji [inside_shape] oraz zakłada, że ostatnim wykonanym zgięciem jest [fold] *)
-let make_sheet (prev_sheet : kartka) (fold : (point * point) * (fold * fold)) : (kartka -> int) =
-					function (p : point) -> begin
-						(* Jeśli nie zostało wykonane żadne zgięcie *)
-						if fold = zero_fold then (if inside_shape p then 1 else 0)
-						else begin
-							
-						end
-					end
+		if fabs cross < eps then 0
+		else if cross < 0. then 1
+		else -1
 
 let prostokat (ax, ay) (bx, by) : kartka = function (px, py) ->
-		if px >= ax && px <= bx && py >= ay && py <= by then 1 else 0	
+		if px >= ax -. eps && px <= bx +. eps && py >= ay -. eps && py <= by +. eps then 1 else 0	
 
 let kolko (s : point) (r : float) =
-	let sqrmag (k : point) = dot k k in
-	function (p : point) -> if (sqrmag (sub_points p s) <= r *. r) then 1 else 0
+	let mag (k : point) = sqrt (dot k k) in
+	function (p : point) -> if (mag (sub_points p s) <= r +. eps) then 1 else 0
 
 let zloz (a : point) (b : point) (k : kartka) : kartka =
 	assert (a <> b);
 	let fold = (a, b) in
-	function (p : point) -> begin
+	function (p : point) ->
 		let sid = side p fold in
-		if sid > 0 then begin
-			let rp = reflect p fold in
-			k p + k rp
-		end
+		if sid > 0 then k p + k (reflect p fold)
 		else if sid = 0 then k p
 		else 0 
-	end
 
-let skladaj (lst : (point * point) list) (k : kartka) = k
+let skladaj (lst : (point * point) list) (k : kartka) =
+	List.fold_left (fun x -> function (a, b) -> zloz a b x) k lst
