@@ -39,42 +39,50 @@ let side (v : point) (l_orig, l_end) =
 		else if cross > 0. then -1
 		else 0
 
-(* Zwraca funkcję sprawdzającą, czy punkt [p] jest wewnątrz prostokąta [ra, rb] *)
-let inside_rect (ra : point) (rb : point) =
-	function (p : point) -> begin
-		(first p) >= (first ra) && (first p) <= (first rb) &&
-		(second p) >= (second ra) && (second p) <= (second rb)
-	end
+(* Tworzy nową kartkę w kształcie prostokąta [ra, rb] *)
+let sheet_rect (ra : point) (rb : point) : kartka =
+	function (p : point) ->
+		if (first p) >= (first ra) && (first p) <= (first rb) &&
+		   (second p) >= (second ra) && (second p) <= (second rb)
+		   then 1 else 0
 
-(* Zwraca funkcję sprawdzającą, czy punkt [p] jest wewnątrz okręgu [s, r] *)
-let inside_circle (s : point) (r : float) =
+(* Tworzy kartkę w kształcie koła o środku [s] i promieniu [r] *)
+let sheet_circle (s : point) (r : float) =
 	let sqrmag (k : point) = dot k k in
-	function (p : point) -> (sqrmag (sub_points p s) <= r *. r)
-
-(* Zmienna pomocnicza do debugowania     *)
-(* Autor: Piotr Prabucki & Jan Wawszczak *)
-let make_shit = 69;;
+	function (p : point) -> if (sqrmag (sub_points p s) <= r *. r) then 1 else 0
 
 (* Krotka symbolizująca brak jakiegokolwiek zgięcia kartki *)
 let zero_fold = ((0, 0), (0, 0))
 
-(* Tworzy kartkę, która do sprawdzania przynależności punktu do siebie samej 			*)
-(* używa funkcji [inside_shape] oraz zakłada, że wykonane zostały złożenia z listy [folds] *)
-let make_sheet (inside_shape : point -> bool) (fold : (point * point) * (fold * fold)) : (kartka -> int) =
+(* Tworzy kartkę, która do sprawdzania przynależności punktu 							 *)
+(* używa funkcji [inside_shape] oraz zakłada, że ostatnim wykonanym zgięciem jest [fold] *)
+let make_sheet (prev_sheet : kartka) (fold : (point * point) * (fold * fold)) : (kartka -> int) =
+					function (p : point) -> begin
+						(* Jeśli nie zostało wykonane żadne zgięcie *)
+						if fold = zero_fold then (if inside_shape p then 1 else 0)
+						else begin
+							
+						end
+					end
+
+let prostokat (ax, ay) (bx, by) : kartka = function (px, py) ->
+		if px >= ax && px <= bx && py >= ay && py <= by then 1 else 0	
+
+let kolko (s : point) (r : float) =
+	let sqrmag (k : point) = dot k k in
+	function (p : point) -> if (sqrmag (sub_points p s) <= r *. r) then 1 else 0
+
+let zloz (a : point) (b : point) (k : kartka) : kartka =
+	assert (a <> b);
+	let fold = (a, b) in
 	function (p : point) -> begin
-		(* Jeśli nie wykonane zostało żadne zgięcie *)
-		if fold = zero_fold then (if inside_shape p then 1 else 0)
-		else begin
-			
+		let sid = side p fold in
+		if sid > 0 then begin
+			let rp = reflect p fold in
+			k p + k rp
 		end
+		else if sid = 0 then k p
+		else 0 
 	end
-
-let prostokat (a : point) (b : point) =
-	make_sheet (inside_rect a b) zero_fold
-
-let kolko (p : point) (r : float) =
-	make_sheet (inside_circle p r) zero_fold
-
-let zloz (a : point) (b : point) (k : kartka) = k
 
 let skladaj (lst : (point * point) list) (k : kartka) = k
