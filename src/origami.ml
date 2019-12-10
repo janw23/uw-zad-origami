@@ -16,9 +16,9 @@ let add_points (ax, ay) (bx, by) = (ax +. bx, ay +. by)
 and sub_points (ax, ay) (bx, by) = (ax -. bx, ay -. by)
 and mul_point (s : float) (x, y) = (s *. x, s *. y)
 
-(* Iloczyn skalarny wektorów [a] i [b] *)
-let dot (a : point) (b : point) =
-	(first a) *. (first b) +. (second a) *. (second b)
+(* Iloczyn skalarny i wektorowy wektorów [a] i [b] *)
+let dot   (a, b) (c, d) = a *. c +. b *. d
+and cross (a, b) (c, d) = a *. d -. b *. c
 
 (* Odbija punkt [x] względem prostej przechodzącej przez [l_orig] oraz [l_end] *)
 let reflect (v : point) (l_orig, l_end) =
@@ -34,10 +34,9 @@ let reflect (v : point) (l_orig, l_end) =
 let side (v : point) (l_orig, l_end) =
 	let p = sub_points v l_orig
 	and l = sub_points l_end l_orig in
-	let cross = (first p) *. (second l) -. (second p) *. (first l)
-	in
-		if fabs cross < eps then 0
-		else if cross < 0. then 1
+	let cros = cross p l in
+		if fabs cros < eps then 0
+		else if cros < 0. then 1
 		else -1
 
 (* Tworzy prostokątną niezgiętą kartkę *)
@@ -48,9 +47,9 @@ let prostokat (ax, ay) (bx, by) : kartka = function (px, py) ->
 
 (* Tworzy okrągłą niezgiętą kartkę *)
 let kolko (s : point) (r : float) =
-	let mag (kx, ky) = sqrt (kx *. kx +. ky *. ky) in
+	let sqrmag (kx, ky) = (kx *. kx +. ky *. ky) in
 	function (p : point) ->
-		if mag (sub_points p s) <= r +. eps
+		if sqrmag (sub_points p s) <= (r +. eps) *. (r +. eps)
 		then 1 else 0
 
 (* Składa kartkę [k] wzdłuż wektora z [a] do [b] *)
