@@ -41,9 +41,9 @@ let side (v : point) (l_orig, l_end) =
 
 (* Tworzy prostokątną niezgiętą kartkę *)
 let prostokat (ax, ay) (bx, by) : kartka = function (px, py) ->
-		if px >= ax -. eps && px <= bx +. eps &&
-		   py >= ay -. eps && py <= by +. eps
-		   then 1 else 0	
+	if px >= ax -. eps && px <= bx +. eps &&
+	   py >= ay -. eps && py <= by +. eps
+	   then 1 else 0	
 
 (* Tworzy okrągłą niezgiętą kartkę *)
 let kolko (s : point) (r : float) =
@@ -64,3 +64,26 @@ let zloz (a : point) (b : point) (k : kartka) : kartka =
 (* Wykonuje serię złożeń [lst] na kartce [k] *)
 let skladaj (lst : (point * point) list) (k : kartka) =
 	List.fold_left (fun x -> function (a, b) -> zloz a b x) k lst
+
+(* TESTY *)
+   
+let a = prostokat (0., 0.) (10., 10.);;
+let a = zloz (5., 0.) (5., 377.) a;;
+
+assert(a (0., 0.) = 2);;
+assert(a (-377., 0.) = 0);;
+assert(a (5., 2.5) = 1);;
+assert(a (2.5, 3.5) = 2);;
+assert(a (5., 5.) = 1);;
+assert(a (5.1, 5.) = 0);;
+assert(a (5.1, 5.1) = 0);;
+
+let a = zloz (5., 0.) (5., 1.) a;;
+
+assert(a (0., 0.) = 2);;
+assert(a (-377., 0.) = 0);;
+assert(a (5., 2.5) = 1);;
+assert(a (2.5, 3.5) = 2);;
+assert(a (5., 5.) = 1);;
+assert(a (5.1, 5.) = 0);;
+assert(a (5.1, 5.1) = 0);;
